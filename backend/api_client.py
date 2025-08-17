@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple API client for testing the Stock Analyzer API
+Simple API client for testing the Market Lens API
 """
 
 import requests
@@ -73,7 +73,7 @@ def interactive_test():
     """Interactive testing mode"""
     client = StockAnalyzerClient()
 
-    print("🚀 Stock Analyzer API Client")
+    print("🚀 Market Lens API Client")
     print("=" * 40)
 
     # Check health first

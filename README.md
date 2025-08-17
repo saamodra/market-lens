@@ -1,4 +1,4 @@
-# Stock Analyzer
+# Market Lens
 
 A comprehensive stock analysis application with a React frontend and Python FastAPI backend, featuring real-time stock data analysis using yfinance and AI-powered insights with Google Gemini.
 

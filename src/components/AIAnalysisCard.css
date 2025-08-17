@@ -1,0 +1,249 @@
+/* Essential markdown list styling */
+.prose ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.prose ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.prose li {
+  margin: 0.25rem 0;
+}
+
+.prose li p {
+  margin: 0;
+  display: inline;
+}
+
+.prose li strong {
+  font-weight: 600;
+}
+
+/* Ensure bullet points are visible */
+.prose ul li::marker {
+  color: #6b7280;
+}
+
+.dark .prose ul li::marker {
+  color: #9ca3af;
+}
+
+/* Heading styles */
+.prose h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 1.5rem 0 1rem 0;
+  color: #111827;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+}
+
+.prose h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.75rem 0;
+  color: #111827;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.25rem;
+}
+
+.prose h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem 0;
+  color: #111827;
+}
+
+.prose h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0.75rem 0 0.5rem 0;
+  color: #111827;
+}
+
+.prose h5 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0.5rem 0 0.25rem 0;
+  color: #111827;
+}
+
+.prose h6 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin: 0.5rem 0 0.25rem 0;
+  color: #111827;
+}
+
+/* Dark mode heading styles */
+.dark .prose h1,
+.dark .prose h2,
+.dark .prose h3,
+.dark .prose h4,
+.dark .prose h5,
+.dark .prose h6 {
+  color: #f9fafb;
+  border-bottom-color: #374151;
+}
+
+/* Table styles */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.dark .prose table {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+.prose thead {
+  background-color: #f9fafb;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.dark .prose thead {
+  background-color: #374151;
+  border-bottom-color: #4b5563;
+}
+
+.prose th {
+  padding: 0.5rem;
+  text-align: left;
+  font-weight: 600;
+  color: #111827;
+  border-right: 1px solid #e5e7eb;
+}
+
+.dark .prose th {
+  color: #f9fafb;
+  border-right-color: #4b5563;
+}
+
+.prose th:last-child {
+  border-right: none;
+}
+
+.prose td {
+  padding: 0.5rem;
+  border-right: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+  color: #374151;
+}
+
+.dark .prose td {
+  color: #d1d5db;
+  border-right-color: #4b5563;
+  border-bottom-color: #4b5563;
+}
+
+.prose td:last-child {
+  border-right: none;
+}
+
+.prose tr:last-child td {
+  border-bottom: none;
+}
+
+.prose tr:hover {
+  background-color: #f9fafb;
+}
+
+.dark .prose tr:hover {
+  background-color: #374151;
+}
+
+/* Responsive table */
+.prose .table-container {
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.prose table {
+  min-width: 500px;
+}
+
+/* Additional text formatting */
+.prose p {
+  margin: 0.75rem 0;
+  line-height: 1.6;
+}
+
+.prose strong {
+  font-weight: 600;
+  color: #111827;
+}
+
+.dark .prose strong {
+  color: #f9fafb;
+}
+
+.prose em {
+  font-style: italic;
+}
+
+.prose code {
+  background-color: #f3f4f6;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.dark .prose code {
+  background-color: #374151;
+  color: #f9fafb;
+}
+
+.prose pre {
+  background-color: #f3f4f6;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+  border: 1px solid #e5e7eb;
+}
+
+.dark .prose pre {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+.prose pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+.prose blockquote {
+  border-left: 4px solid #3b82f6;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: #6b7280;
+}
+
+.dark .prose blockquote {
+  color: #9ca3af;
+  border-left-color: #60a5fa;
+}
+
+.prose hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 2rem 0;
+}
+
+.dark .prose hr {
+  border-top-color: #374151;
+}

@@ -1,5 +1,5 @@
 @echo off
-echo 🚀 Starting Stock Analyzer...
+echo 🚀 Starting Market Lens...
 
 REM Check if Python is installed
 python --version >nul 2>&1
@@ -72,7 +72,7 @@ echo 🚀 Starting frontend server on http://localhost:5173
 start "Frontend Server" npm run dev
 
 echo.
-echo 🎉 Stock Analyzer is starting up!
+echo 🎉 Market Lens is starting up!
 echo.
 echo 📊 Backend API: http://localhost:8000
 echo 📊 API Docs: http://localhost:8000/docs

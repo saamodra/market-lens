@@ -2,7 +2,11 @@
  * Currency formatting utilities
  */
 
-export const formatCurrency = (amount: number, currency: string): string => {
+export const formatCurrency = (amount: number | null, currency: string): string => {
+  if (amount === null) {
+    return 'N/A';
+  }
+
   switch (currency.toUpperCase()) {
     case 'IDR':
     case 'IDR.JK':

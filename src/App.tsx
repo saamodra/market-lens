@@ -10,12 +10,13 @@ import { AIAnalysisCard } from './components/AIAnalysisCard';
 import { Watchlist } from './components/Watchlist';
 import { ThemeToggle } from './components/ThemeToggle';
 import { MetricCardSkeleton, ChartSkeleton } from './components/LoadingSkeleton';
-import { StockAnalysis } from './types/stock';
-import { getStockData } from './services/stockApi';
-import { generateAIAnalysis } from './services/geminiApi';
+import { StockAnalysis, AIAnalysis } from './types/stock';
+import { getStockData, getAIAnalysis } from './services/stockApi';
 
 function App() {
   const [analysis, setAnalysis] = useState<StockAnalysis | null>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
+  const [aiQuestion, setAiQuestion] = useState<string>("Berikan analisis lengkap saham ini dengan format keystats dan rekomendasi trading");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,16 +27,21 @@ function App() {
     setIsLoading(true);
     setError(null);
     setAnalysis(null);
+    setAiAnalysis(null);
 
     try {
       const data = await getStockData(symbol);
       setAnalysis(data);
 
-      // Generate AI analysis
+      // Get AI analysis using separate API call
       setIsLoadingAI(true);
-      const aiAnalysis = await generateAIAnalysis(data.quote, data.metrics, data.technical);
-      console.log(aiAnalysis);
-      setAnalysis(prev => prev ? { ...prev, aiAnalysis } : null);
+      try {
+        const aiData = await getAIAnalysis(symbol, aiQuestion);
+        setAiAnalysis(aiData);
+      } catch (aiError) {
+        console.error('AI analysis failed:', aiError);
+        // Don't fail the entire search if AI analysis fails
+      }
 
       toast.success(`Analysis loaded for ${symbol}`);
     } catch (err) {
@@ -44,6 +50,22 @@ function App() {
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
+      setIsLoadingAI(false);
+    }
+  };
+
+  const handleRefreshAI = async () => {
+    if (!analysis?.quote.symbol) return;
+
+    setIsLoadingAI(true);
+    try {
+      const aiData = await getAIAnalysis(analysis.quote.symbol, aiQuestion);
+      setAiAnalysis(aiData);
+      toast.success('AI analysis refreshed');
+    } catch (aiError) {
+      console.error('AI analysis failed:', aiError);
+      toast.error('Failed to refresh AI analysis');
+    } finally {
       setIsLoadingAI(false);
     }
   };
@@ -64,7 +86,7 @@ function App() {
             <div className="flex items-center">
               <BarChart3 className="w-8 h-8 text-blue-500 mr-3" />
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Stock Analyzer Pro
+                Market Lens Pro
               </h1>
             </div>
 
@@ -78,23 +100,6 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Disclaimer */}
-        <div className="mb-8 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-          <div className="flex items-start">
-            <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 mr-2 mt-0.5" />
-            <div>
-              <h3 className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                Investment Disclaimer
-              </h3>
-              <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                This tool is for educational purposes only and does not constitute financial advice.
-                Past performance does not guarantee future results. Always consult with a qualified
-                financial advisor before making investment decisions.
-              </p>
-            </div>
-          </div>
-        </div>
-
         {error && (
           <div className="mb-8 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
             <div className="flex items-center">
@@ -138,12 +143,52 @@ function App() {
                 />
 
                 {/* AI Analysis */}
-                {(analysis.aiAnalysis || isLoadingAI) && (
-                  <AIAnalysisCard
-                    analysis={analysis.aiAnalysis!}
-                    isLoading={isLoadingAI}
-                  />
-                )}
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between mb-4">
+                                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Analisis AI
+                  </h3>
+                    {analysis && (
+                                              <button
+                          onClick={handleRefreshAI}
+                          disabled={isLoadingAI}
+                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-md transition-colors"
+                        >
+                          {isLoadingAI ? 'Refreshing...' : 'Refresh AI'}
+                        </button>
+                    )}
+                  </div>
+
+                  <div className="mb-4">
+                    <label htmlFor="ai-question" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Tanyakan AI tentang saham ini:
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        id="ai-question"
+                        value={aiQuestion}
+                        onChange={(e) => setAiQuestion(e.target.value)}
+                        placeholder="e.g., Berikan analisis lengkap saham ini dengan format keystats dan rekomendasi trading"
+                        className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                                              <button
+                          onClick={handleRefreshAI}
+                          disabled={isLoadingAI || !analysis}
+                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-md transition-colors"
+                        >
+                          Tanya AI
+                        </button>
+                    </div>
+                  </div>
+
+                  {(aiAnalysis || isLoadingAI) && (
+                    <AIAnalysisCard
+                      analysis={aiAnalysis!}
+                      isLoading={isLoadingAI}
+                    />
+                  )}
+                </div>
 
                 {/* Financial Metrics */}
                 <FinancialMetrics metrics={analysis.metrics} />
@@ -161,7 +206,7 @@ function App() {
               <div className="text-center py-12">
                 <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
-                  Welcome to Stock Analyzer Pro
+                  Welcome to Market Lens Pro
                 </h3>
                 <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
                   Search for any stock symbol to get comprehensive analysis including

@@ -1,26 +1,26 @@
-import { Star, X, TrendingUp } from 'lucide-react';
+import { Clock, X, TrendingUp } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
-interface WatchlistProps {
+interface RecentSearchesProps {
   onSelectStock: (symbol: string) => void;
 }
 
-export function Watchlist({ onSelectStock }: WatchlistProps) {
-  const [watchlist, setWatchlist] = useLocalStorage<string[]>('watchlist', []);
+export function RecentSearches({ onSelectStock }: RecentSearchesProps) {
+  const [recentSearches, setRecentSearches] = useLocalStorage<string[]>('recentSearches', []);
 
-  const removeFromWatchlist = (symbol: string) => {
-    setWatchlist(watchlist.filter(s => s !== symbol));
+  const removeFromRecentSearches = (symbol: string) => {
+    setRecentSearches(recentSearches.filter(s => s !== symbol));
   };
 
-  if (watchlist.length === 0) {
+  if (recentSearches.length === 0) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-200 dark:border-gray-700">
         <div className="flex items-center mb-4">
-          <Star className="w-5 h-5 text-yellow-500 mr-2" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Watchlist</h3>
+          <Clock className="w-5 h-5 text-blue-500 mr-2" />
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Searches</h3>
         </div>
         <p className="text-gray-500 dark:text-gray-400 text-sm">
-          No stocks in watchlist. Search for stocks and add them to your watchlist.
+          No recent searches. Search for stocks to see them here.
         </p>
       </div>
     );
@@ -29,12 +29,12 @@ export function Watchlist({ onSelectStock }: WatchlistProps) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-200 dark:border-gray-700">
       <div className="flex items-center mb-4">
-        <Star className="w-5 h-5 text-yellow-500 mr-2" />
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Watchlist</h3>
+        <Clock className="w-5 h-5 text-blue-500 mr-2" />
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Searches</h3>
       </div>
 
       <div className="space-y-2">
-        {watchlist.map((symbol) => (
+        {recentSearches.map((symbol) => (
           <div
             key={symbol}
             className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
@@ -55,7 +55,7 @@ export function Watchlist({ onSelectStock }: WatchlistProps) {
             </button>
 
             <button
-              onClick={() => removeFromWatchlist(symbol)}
+              onClick={() => removeFromRecentSearches(symbol)}
               className="p-1 text-gray-400 hover:text-red-500 transition-colors"
             >
               <X className="w-4 h-4" />

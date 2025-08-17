@@ -11,19 +11,6 @@ interface TechnicalIndicatorsProps {
 }
 
 export function TechnicalIndicators({ indicators, currentPrice, currency }: TechnicalIndicatorsProps) {
-  const getRSIStatus = (rsi: number) => {
-    if (rsi > 70) return 'danger'; // Overbought
-    if (rsi < 30) return 'good'; // Oversold (potential buy)
-    return 'warning'; // Neutral
-  };
-
-  const getMAStatus = (price: number, ma: number) => {
-    const diff = ((price - ma) / ma) * 100;
-    if (diff > 5) return 'good';
-    if (diff < -5) return 'danger';
-    return 'warning';
-  };
-
   return (
     <div className="space-y-6">
       <div>

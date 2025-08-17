@@ -7,7 +7,7 @@ import { FinancialMetrics } from './components/FinancialMetrics';
 import { TechnicalIndicators } from './components/TechnicalIndicators';
 import { PriceChart } from './components/PriceChart';
 import { AIAnalysisCard } from './components/AIAnalysisCard';
-import { Watchlist } from './components/Watchlist';
+import { RecentSearches } from './components/RecentSearches';
 import { ThemeToggle } from './components/ThemeToggle';
 import { MetricCardSkeleton, ChartSkeleton } from './components/LoadingSkeleton';
 import { StockAnalysis, AIAnalysis } from './types/stock';
@@ -112,7 +112,7 @@ function App() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-6">
-            <Watchlist onSelectStock={handleSearch} />
+            <RecentSearches onSelectStock={handleSearch} />
           </div>
 
           {/* Main Analysis */}

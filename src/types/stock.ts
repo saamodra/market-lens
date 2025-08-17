@@ -1,0 +1,72 @@
+export interface StockQuote {
+  symbol: string;
+  name: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  volume: number;
+  marketCap: number;
+  high52Week: number;
+  low52Week: number;
+  sector: string;
+  industry: string;
+  currency: string;
+}
+
+export interface FinancialMetrics {
+  peRatio: number;
+  forwardPE: number;
+  pegRatio: number;
+  priceToBook: number;
+  priceToSales: number;
+  evToRevenue: number;
+  profitMargin: number;
+  operatingMargin: number;
+  grossMargin: number;
+  returnOnEquity: number;
+  returnOnAssets: number;
+  revenueGrowth: number;
+  earningsGrowth: number;
+  debtToEquity: number;
+  currentRatio: number;
+  quickRatio: number;
+  cashPerShare: number;
+  dividendYield: number;
+  dividendRate: number;
+  payoutRatio: number;
+}
+
+export interface TechnicalIndicators {
+  rsi: number;
+  movingAverage50: number;
+  movingAverage200: number;
+  volatility: number;
+  supportLevel: number;
+  resistanceLevel: number;
+}
+
+export interface AIAnalysis {
+  score: number;
+  recommendation: 'Strong Buy' | 'Buy' | 'Hold' | 'Sell' | 'Strong Sell';
+  reasoning: string;
+  pros: string[];
+  cons: string[];
+  riskLevel: 'Low' | 'Medium' | 'High';
+}
+
+export interface PriceData {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+export interface StockAnalysis {
+  quote: StockQuote;
+  metrics: FinancialMetrics;
+  technical: TechnicalIndicators;
+  aiAnalysis?: AIAnalysis;
+  priceHistory: PriceData[];
+}

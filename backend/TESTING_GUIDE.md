@@ -1,4 +1,4 @@
-# 🧪 Stock Analyzer API Testing Guide
+# 🧪 Market Lens API Testing Guide
 
 ## 📋 Available Testing Tools
 

@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
+import math
 
 # Load environment variables
 load_dotenv()
@@ -17,7 +18,7 @@ load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 app = FastAPI(
-    title="Stock Analyzer API",
+    title="Market Lens API",
     description="A comprehensive stock analysis API using yfinance and Google AI",
     version="1.0.0"
 )
@@ -135,9 +136,15 @@ def analyze_stock(ticker: str) -> Dict[str, Any]:
             hist = pd.DataFrame()
 
         # Get financial statements
-        financials = stock.financials
-        balance_sheet = stock.balance_sheet
-        cashflow = stock.cashflow
+        try:
+            financials = stock.financials
+            balance_sheet = stock.balance_sheet
+            cashflow = stock.cashflow
+        except Exception as e:
+            print(f"Warning: Could not fetch financial statements for {ticker}: {e}")
+            financials = pd.DataFrame()
+            balance_sheet = pd.DataFrame()
+            cashflow = pd.DataFrame()
 
         analysis = {}
 
@@ -179,10 +186,101 @@ def analyze_stock(ticker: str) -> Dict[str, Any]:
         analysis['payout_ratio'] = info.get('payoutRatio', None)
         analysis['dividend_rate'] = info.get('dividendRate', None)
 
+        # === ADDITIONAL VALUATION METRICS ===
+        analysis['price_to_cashflow'] = info.get('priceToCashflow', None)
+        analysis['ev_to_ebitda'] = info.get('enterpriseToEbitda', None)
+        analysis['enterprise_value'] = info.get('enterpriseValue', None)
+        analysis['shares_outstanding'] = info.get('sharesOutstanding', None)
+        analysis['free_float'] = info.get('floatShares', None)
+        analysis['shares_short'] = info.get('sharesShort', None)
+        analysis['short_ratio'] = info.get('shortRatio', None)
+
+        # === EARNINGS METRICS ===
+        analysis['eps_ttm'] = info.get('trailingEps', None)
+        analysis['eps_forward'] = info.get('forwardEps', None)
+        analysis['eps_annualized'] = info.get('trailingEps', None)  # Will be calculated from financials
+        analysis['book_value_per_share'] = info.get('bookValue', None)
+        analysis['free_cash_flow_per_share'] = info.get('freeCashflow', None)
+
+        # === REVENUE & SALES METRICS ===
+        analysis['revenue_per_share'] = info.get('revenuePerShare', None)
+        analysis['total_revenue'] = info.get('totalRevenue', None)
+        analysis['gross_profits'] = info.get('grossProfits', None)
+        analysis['ebitda'] = info.get('ebitda', None)
+        analysis['ebit'] = info.get('ebit', None)
+        analysis['net_income'] = info.get('netIncomeToCommon', None)
+
+        # === BALANCE SHEET METRICS ===
+        analysis['total_cash'] = info.get('totalCash', None)
+        analysis['total_assets'] = info.get('totalAssets', None)
+        analysis['total_liabilities'] = info.get('totalLiabilities', None)
+        analysis['total_debt'] = info.get('totalDebt', None)
+        analysis['total_equity'] = info.get('totalEquity', None)
+        analysis['working_capital'] = info.get('workingCapital', None)
+
+        # === CASH FLOW METRICS ===
+        analysis['operating_cash_flow'] = info.get('operatingCashflow', None)
+        analysis['investing_cash_flow'] = info.get('investingCashflow', None)
+        analysis['financing_cash_flow'] = info.get('financingCashflow', None)
+        analysis['capital_expenditure'] = info.get('capitalExpenditure', None)
+        analysis['free_cash_flow'] = info.get('freeCashflow', None)
+
         # === ANALYST RECOMMENDATIONS ===
         analysis['analyst_recommendation'] = info.get('recommendationKey', None)
         analysis['target_price'] = info.get('targetMeanPrice', None)
         analysis['num_analyst_opinions'] = info.get('numberOfAnalystOpinions', None)
+
+        # === EXTRACT DATA FROM FINANCIAL STATEMENTS ===
+        if not financials.empty:
+            try:
+                # Get most recent financial data
+                latest_financials = financials.iloc[:, 0]  # Most recent quarter
+                ttm_financials = financials.sum(axis=1)   # Trailing 12 months
+
+                # Income Statement
+                analysis['revenue_ttm'] = latest_financials.get('Total Revenue', analysis.get('total_revenue'))
+                analysis['gross_profit_ttm'] = latest_financials.get('Gross Profit', analysis.get('gross_profits'))
+                analysis['ebitda_ttm'] = latest_financials.get('EBITDA', analysis.get('ebitda'))
+                analysis['net_income_ttm'] = latest_financials.get('Net Income', analysis.get('net_income'))
+
+                # Calculate EPS from financials if available
+                if analysis['net_income_ttm'] and analysis.get('shares_outstanding'):
+                    analysis['eps_annualized'] = analysis['net_income_ttm'] / analysis['shares_outstanding']
+            except Exception as e:
+                print(f"Warning: Could not process financials for {ticker}: {e}")
+
+        if not balance_sheet.empty:
+            try:
+                latest_balance = balance_sheet.iloc[:, 0]  # Most recent quarter
+
+                # Balance Sheet
+                analysis['cash_balance'] = latest_balance.get('Cash And Cash Equivalents', analysis.get('total_cash'))
+                analysis['total_assets_bs'] = latest_balance.get('Total Assets', analysis.get('total_assets'))
+                analysis['total_liabilities_bs'] = latest_balance.get('Total Liabilities', analysis.get('total_liabilities'))
+                analysis['total_debt_bs'] = latest_balance.get('Total Debt', analysis.get('total_debt'))
+                analysis['total_equity_bs'] = latest_balance.get('Total Stockholder Equity', analysis.get('total_equity'))
+
+                # Calculate working capital
+                current_assets = latest_balance.get('Total Current Assets', 0)
+                current_liabilities = latest_balance.get('Total Current Liabilities', 0)
+                if current_assets and current_liabilities:
+                    analysis['working_capital_calc'] = current_assets - current_liabilities
+            except Exception as e:
+                print(f"Warning: Could not process balance sheet for {ticker}: {e}")
+
+        if not cashflow.empty:
+            try:
+                latest_cashflow = cashflow.iloc[:, 0]  # Most recent quarter
+                ttm_cashflow = cashflow.sum(axis=1)   # Trailing 12 months
+
+                # Cash Flow Statement
+                analysis['operating_cf_ttm'] = ttm_cashflow.get('Operating Cash Flow', analysis.get('operating_cash_flow'))
+                analysis['investing_cf_ttm'] = ttm_cashflow.get('Investing Cash Flow', analysis.get('investing_cash_flow'))
+                analysis['financing_cf_ttm'] = ttm_cashflow.get('Financing Cash Flow', analysis.get('financing_cash_flow'))
+                analysis['capex_ttm'] = ttm_cashflow.get('Capital Expenditure', analysis.get('capital_expenditure'))
+                analysis['free_cf_ttm'] = ttm_cashflow.get('Free Cash Flow', analysis.get('free_cash_flow'))
+            except Exception as e:
+                print(f"Warning: Could not process cash flow for {ticker}: {e}")
 
         # === TECHNICAL INDICATORS ===
         if not hist.empty:
@@ -381,6 +479,33 @@ def evaluate_stock(analysis: Dict[str, Any]) -> Dict[str, Any]:
         'red_flags': red_flags
     }
 
+def clean_data_for_json(data):
+    """Recursively clean data to make it JSON compliant"""
+    if isinstance(data, dict):
+        return {key: clean_data_for_json(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [clean_data_for_json(item) for item in data]
+    elif isinstance(data, (np.float64, np.float32)):
+        # Convert numpy floats to regular Python floats
+        if np.isnan(data):
+            return None  # or 0, or "NaN" as string
+        elif np.isinf(data):
+            return None  # or handle infinity as needed
+        else:
+            return float(data)
+    elif isinstance(data, (np.int64, np.int32)):
+        return int(data)
+    elif isinstance(data, float):
+        # Handle regular Python floats that might be NaN or inf
+        if math.isnan(data):
+            return None
+        elif math.isinf(data):
+            return None
+        else:
+            return data
+    else:
+        return data
+
 def format_stock_data(analysis: Dict[str, Any], ticker: str) -> Dict[str, Any]:
     """Format the analysis data to match the frontend expectations"""
 
@@ -478,7 +603,7 @@ def format_stock_data(analysis: Dict[str, Any], ticker: str) -> Dict[str, Any]:
 
 @app.get("/")
 async def root():
-    return {"message": "Stock Analyzer API is running!"}
+    return {"message": "Market Lens API is running!"}
 
 @app.get("/health")
 async def health_check():
@@ -490,6 +615,7 @@ async def analyze_stock_endpoint(request: StockAnalysisRequest):
     try:
         analysis = analyze_stock(request.symbol)
         formatted_data = format_stock_data(analysis, request.symbol)
+        formatted_data = clean_data_for_json(formatted_data)
         return formatted_data
     except Exception as e:
         print(e)
@@ -532,24 +658,125 @@ async def ai_analysis_endpoint(request: AIAnalysisRequest):
     try:
         # Get stock data for context
         analysis = analyze_stock(request.symbol)
-        evaluation = evaluate_stock(analysis)
 
         # Create context for AI
         context = f"""
-        Stock: {request.symbol}
-        Company: {analysis.get('company_name', 'N/A')}
-        Current Price: ${analysis.get('current_price', 0):.2f}
-        P/E Ratio: {analysis.get('pe_ratio', 'N/A')}
-        Profit Margin: {analysis.get('profit_margin', 'N/A')}
-        ROE: {analysis.get('return_on_equity', 'N/A')}
-        Score: {evaluation['score']:.1f}/100
-        Recommendation: {evaluation['recommendation']}
+        Kamu adalah analis saham profesional.
+        Aku akan memberikan data saham dalam format JSON hasil dari yfinance.
 
-        Question: {request.question}
+        Tugasmu adalah menyusun **ringkasan analisis saham** dengan struktur berikut:
+        1. **Valuasi**
+        * Bandingkan metrik valuasi (PER, PBV, EV/EBITDA) dengan standar umum.
+        * Sebutkan apakah saham tergolong **murah, sedang, atau mahal**.
+        2. **Tren Kinerja Keuangan**
+        * Uraikan pertumbuhan pendapatan, laba, margin usaha, dan margin bersih.
+        * Tulis dalam format angka ribuan (contoh: 1,234B, 125M).
+        3. **Posisi Neraca**
+        * Analisis likuiditas (Current Ratio, Quick Ratio, kas).
+        * Komentari rasio utang (Debt to Equity).
+        * Simpulkan apakah neraca **sehat atau tidak**.
+        4. **Arus Kas**
+        * Tinjau arus kas operasi, investasi, dan pendanaan.
+        * Sebutkan apakah arus kas secara umum **positif atau negatif**.
+        5. **Momentum Perdagangan**
+        * Gunakan data teknikal (harga sekarang, range 52M, RSI, volume, volatilitas).
+        * Sebutkan potensi **gap up atau gap down** dalam jangka pendek.
+        6. **Rekomendasi Trading**
+        * Akhiri dengan rekomendasi singkat untuk strategi **“beli sore – jual pagi”**.
+        * Gunakan bahasa Indonesia yang ringkas, profesional, dan mudah dipahami trader.
+
+        Gunakan gaya analisis yang ringkas, jelas, dengan bullet point bila perlu.
+
+        Berikut adalah data JSON-nya:
+        {{
+          "symbol": "{request.symbol}",
+          "company_name": "{analysis.get('company_name', 'N/A')}",
+          "current_price": {analysis.get('current_price', 0)},
+          "market_cap": {analysis.get('market_cap', 0)},
+
+          "valuation": {{
+            "pe_ratio": {analysis.get('pe_ratio', 'N/A')},
+            "forward_pe": {analysis.get('forward_pe', 'N/A')},
+            "price_to_book": {analysis.get('price_to_book', 'N/A')},
+            "price_to_sales": {analysis.get('price_to_sales', 'N/A')},
+            "price_to_cashflow": {analysis.get('price_to_cashflow', 'N/A')},
+            "ev_to_ebitda": {analysis.get('ev_to_ebitda', 'N/A')},
+            "enterprise_value": {analysis.get('enterprise_value', 'N/A')}
+          }},
+
+          "per_share": {{
+            "eps_ttm": {analysis.get('eps_ttm', 'N/A')},
+            "eps_forward": {analysis.get('eps_forward', 'N/A')},
+            "eps_annualized": {analysis.get('eps_annualized', 'N/A')},
+            "revenue_per_share": {analysis.get('revenue_per_share', 'N/A')},
+            "cash_per_share": {analysis.get('cash_per_share', 'N/A')},
+            "book_value_per_share": {analysis.get('book_value_per_share', 'N/A')},
+            "free_cash_flow_per_share": {analysis.get('free_cash_flow_per_share', 'N/A')}
+          }},
+
+          "solvency": {{
+            "current_ratio": {analysis.get('current_ratio', 'N/A')},
+            "quick_ratio": {analysis.get('quick_ratio', 'N/A')},
+            "debt_to_equity": {analysis.get('debt_to_equity', 'N/A')}
+          }},
+
+          "profitability": {{
+            "profit_margin": {analysis.get('profit_margin', 'N/A')},
+            "operating_margin": {analysis.get('operating_margin', 'N/A')},
+            "return_on_equity": {analysis.get('return_on_equity', 'N/A')},
+            "return_on_assets": {analysis.get('return_on_assets', 'N/A')}
+          }},
+
+          "income_statement": {{
+            "revenue": {analysis.get('revenue_ttm', analysis.get('total_revenue', 'N/A'))},
+            "gross_profit": {analysis.get('gross_profit_ttm', analysis.get('gross_profits', 'N/A'))},
+            "ebitda": {analysis.get('ebitda_ttm', analysis.get('ebitda', 'N/A'))},
+            "net_income": {analysis.get('net_income_ttm', analysis.get('net_income', 'N/A'))}
+          }},
+
+          "balance_sheet": {{
+            "cash": {analysis.get('cash_balance', analysis.get('total_cash', 'N/A'))},
+            "total_assets": {analysis.get('total_assets_bs', analysis.get('total_assets', 'N/A'))},
+            "total_liabilities": {analysis.get('total_liabilities_bs', analysis.get('total_liabilities', 'N/A'))},
+            "total_debt": {analysis.get('total_debt_bs', analysis.get('total_debt', 'N/A'))},
+            "total_equity": {analysis.get('total_equity_bs', analysis.get('total_equity', 'N/A'))},
+            "working_capital": {analysis.get('working_capital_calc', analysis.get('working_capital', 'N/A'))}
+          }},
+
+          "cash_flow": {{
+            "operating_cash_flow": {analysis.get('operating_cf_ttm', analysis.get('operating_cash_flow', 'N/A'))},
+            "investing_cash_flow": {analysis.get('investing_cf_ttm', analysis.get('investing_cash_flow', 'N/A'))},
+            "financing_cash_flow": {analysis.get('financing_cf_ttm', analysis.get('financing_cash_flow', 'N/A'))},
+            "capital_expenditure": {analysis.get('capex_ttm', analysis.get('capital_expenditure', 'N/A'))},
+            "free_cash_flow": {analysis.get('free_cf_ttm', analysis.get('free_cash_flow', 'N/A'))}
+          }},
+
+          "market_data": {{
+            "shares_outstanding": {analysis.get('shares_outstanding', 'N/A')},
+            "free_float": {analysis.get('free_float', 'N/A')},
+            "shares_short": {analysis.get('shares_short', 'N/A')},
+            "short_ratio": {analysis.get('short_ratio', 'N/A')}
+          }},
+
+          "technical": {{
+            "52_week_high": {analysis.get('52_week_high', 0)},
+            "52_week_low": {analysis.get('52_week_low', 0)},
+            "avg_volume": {analysis.get('avg_volume', 0)},
+            "volatility": {analysis.get('volatility', 'N/A')},
+            "ma_50": {analysis.get('ma_50', 'N/A')},
+            "ma_200": {analysis.get('ma_200', 'N/A')},
+            "rsi": {analysis.get('rsi', 'N/A')}
+          }},
+
+          "growth": {{
+            "revenue_growth": {analysis.get('revenue_growth', 'N/A')},
+            "earnings_growth": {analysis.get('earnings_growth', 'N/A')}
+          }}
+        }}
         """
 
         # Generate AI response
-        model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        model = genai.GenerativeModel('gemini-2.5-flash')
         response = model.generate_content(context)
 
         # Parse AI response

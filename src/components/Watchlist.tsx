@@ -1,5 +1,4 @@
-import React from 'react';
-import { Star, X, TrendingUp, TrendingDown } from 'lucide-react';
+import { Star, X, TrendingUp } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface WatchlistProps {
@@ -33,7 +32,7 @@ export function Watchlist({ onSelectStock }: WatchlistProps) {
         <Star className="w-5 h-5 text-yellow-500 mr-2" />
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Watchlist</h3>
       </div>
-      
+
       <div className="space-y-2">
         {watchlist.map((symbol) => (
           <div
@@ -54,7 +53,7 @@ export function Watchlist({ onSelectStock }: WatchlistProps) {
                 <span className="text-green-600 dark:text-green-400 text-xs">+2.3%</span>
               </div>
             </button>
-            
+
             <button
               onClick={() => removeFromWatchlist(symbol)}
               className="p-1 text-gray-400 hover:text-red-500 transition-colors"

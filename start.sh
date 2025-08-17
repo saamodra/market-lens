@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Starting Stock Analyzer..."
+echo "🚀 Starting Market Lens..."
 
 # Check if Python is installed
 if ! command -v python3 &> /dev/null; then
@@ -69,7 +69,7 @@ npm run dev &
 FRONTEND_PID=$!
 
 echo ""
-echo "🎉 Stock Analyzer is starting up!"
+echo "🎉 Market Lens is starting up!"
 echo ""
 echo "📊 Backend API: http://localhost:8000"
 echo "📊 API Docs: http://localhost:8000/docs"

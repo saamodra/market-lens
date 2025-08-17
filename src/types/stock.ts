@@ -46,12 +46,8 @@ export interface TechnicalIndicators {
 }
 
 export interface AIAnalysis {
-  score: number;
-  recommendation: 'Strong Buy' | 'Buy' | 'Hold' | 'Sell' | 'Strong Sell';
-  reasoning: string;
-  pros: string[];
-  cons: string[];
-  riskLevel: 'Low' | 'Medium' | 'High';
+  analysis: string;
+  recommendations: string[];
 }
 
 export interface PriceData {
@@ -67,6 +63,5 @@ export interface StockAnalysis {
   quote: StockQuote;
   metrics: FinancialMetrics;
   technical: TechnicalIndicators;
-  aiAnalysis?: AIAnalysis;
   priceHistory: PriceData[];
 }

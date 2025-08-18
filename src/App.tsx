@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
 import { BarChart3, AlertTriangle } from 'lucide-react';
 import { SearchBar } from './components/SearchBar';
@@ -8,10 +8,12 @@ import { TechnicalIndicators } from './components/TechnicalIndicators';
 import { PriceChart } from './components/PriceChart';
 import { AIAnalysisCard } from './components/AIAnalysisCard';
 import { RecentSearches } from './components/RecentSearches';
+import { CacheStatus } from './components/CacheStatus';
 import { ThemeToggle } from './components/ThemeToggle';
 import { MetricCardSkeleton, ChartSkeleton } from './components/LoadingSkeleton';
 import { StockAnalysis, AIAnalysis } from './types/stock';
-import { getStockData, getAIAnalysis } from './services/stockApi';
+import { useStockCache } from './hooks/useStockCache';
+import { createCachedStockApi } from './services/cachedStockApi';
 
 function App() {
   const [analysis, setAnalysis] = useState<StockAnalysis | null>(null);
@@ -20,6 +22,19 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isFromCache, setIsFromCache] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  // Initialize caching system
+  const cacheHook = useStockCache();
+  const cachedApi = useMemo(() => createCachedStockApi(
+    cacheHook.getCachedStockData,
+    cacheHook.getCachedAIAnalysis,
+    cacheHook.setCachedStockData,
+    cacheHook.setCachedAIAnalysis,
+    cacheHook.clearCache,
+    cacheHook.getCacheStats
+  ), [cacheHook]);
 
   const handleSearch = async (symbol: string) => {
     if (!symbol.trim()) return;
@@ -28,22 +43,39 @@ function App() {
     setError(null);
     setAnalysis(null);
     setAiAnalysis(null);
+    setIsFromCache(false);
+    setLastUpdated(null);
 
     try {
-      const data = await getStockData(symbol);
-      setAnalysis(data);
+      // Check if we have cached data first
+      const cachedData = cacheHook.getCachedStockData(symbol);
+      if (cachedData) {
+        setAnalysis(cachedData);
+        setIsFromCache(true);
+        setLastUpdated(new Date());
+        toast.success(`Cached analysis loaded for ${symbol}`);
+        // Store data for recent searches even if it's from cache
+        storeStockDataForRecentSearches(symbol, cachedData);
+      } else {
+        // Fetch fresh data
+        const data = await cachedApi.getStockData(symbol);
+        setAnalysis(data);
+        setIsFromCache(false);
+        setLastUpdated(new Date());
+        toast.success(`Fresh analysis loaded for ${symbol}`);
+        // Store data for recent searches
+        storeStockDataForRecentSearches(symbol, data);
+      }
 
       // Get AI analysis using separate API call
       setIsLoadingAI(true);
       try {
-        const aiData = await getAIAnalysis(symbol, aiQuestion);
+        const aiData = await cachedApi.getAIAnalysis(symbol, aiQuestion);
         setAiAnalysis(aiData);
       } catch (aiError) {
         console.error('AI analysis failed:', aiError);
         // Don't fail the entire search if AI analysis fails
       }
-
-      toast.success(`Analysis loaded for ${symbol}`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch stock data';
       setError(errorMessage);
@@ -59,14 +91,44 @@ function App() {
 
     setIsLoadingAI(true);
     try {
-      const aiData = await getAIAnalysis(analysis.quote.symbol, aiQuestion);
+      const aiData = await cachedApi.getAIAnalysis(analysis.quote.symbol, aiQuestion, true); // Force refresh
       setAiAnalysis(aiData);
+      setIsFromCache(false);
+      setLastUpdated(new Date());
       toast.success('AI analysis refreshed');
     } catch (aiError) {
       console.error('AI analysis failed:', aiError);
       toast.error('Failed to refresh AI analysis');
     } finally {
       setIsLoadingAI(false);
+    }
+  };
+
+  const handleForceRefresh = async () => {
+    if (!analysis?.quote.symbol) return;
+    await handleSearch(analysis.quote.symbol);
+  };
+
+  const handleClearCache = () => {
+    cachedApi.clearCache();
+    toast.success('Cache cleared');
+  };
+
+  // Store stock data in localStorage for RecentSearches component
+  const storeStockDataForRecentSearches = (symbol: string, data: StockAnalysis) => {
+    try {
+      const existingData = JSON.parse(localStorage.getItem('recentSearchesData') || '{}');
+      existingData[symbol] = {
+        symbol,
+        price: data.quote.price,
+        change: data.quote.change,
+        changePercent: data.quote.changePercent,
+        currency: data.quote.currency,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem('recentSearchesData', JSON.stringify(existingData));
+    } catch (error) {
+      console.error('Failed to store stock data for recent searches:', error);
     }
   };
 
@@ -111,12 +173,24 @@ function App() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
-            <RecentSearches onSelectStock={handleSearch} />
+          <div className="lg:col-span-1">
+            <div className="lg:sticky lg:top-8 space-y-6 transition-all duration-200 z-10">
+              <RecentSearches onSelectStock={handleSearch} />
+            </div>
           </div>
 
           {/* Main Analysis */}
           <div className="lg:col-span-3 space-y-8">
+            {/* Cache Status */}
+            {analysis && (
+              <CacheStatus
+                isFromCache={isFromCache}
+                lastUpdated={lastUpdated || undefined}
+                cacheStats={cachedApi.getCacheStats()}
+                onClearCache={handleClearCache}
+                onRefresh={handleForceRefresh}
+              />
+            )}
             {isLoading && !analysis && (
               <div className="space-y-6">
                 <ChartSkeleton />

@@ -24,21 +24,21 @@ export function StockQuote({ quote }: StockQuoteProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4">
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg border border-gray-200 dark:border-gray-700">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
             {quote.symbol}
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400">{quote.name}</p>
-          <div className="flex items-center mt-2 text-sm text-gray-500 dark:text-gray-400">
-            <span className="mr-4">{quote.sector}</span>
+          <p className="text-base text-gray-600 dark:text-gray-400">{quote.name}</p>
+          <div className="flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <span className="mr-3">{quote.sector}</span>
             <span>{quote.industry}</span>
           </div>
         </div>
 
-        <div className="text-right mt-4 lg:mt-0">
-          <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+        <div className="text-right mt-3 lg:mt-0">
+          <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
             {formatCurrency(quote.price, quote.currency)}
           </div>
           <div className={`flex items-center justify-end ${
@@ -49,7 +49,7 @@ export function StockQuote({ quote }: StockQuoteProps) {
             ) : (
               <TrendingDown className="w-4 h-4 mr-1" />
             )}
-            <span className="font-medium">
+            <span className="font-medium text-sm">
               {isPositive ? '+' : ''}{quote.change.toFixed(2)}
               ({isPositive ? '+' : ''}{quote.changePercent.toFixed(2)}%)
             </span>
@@ -57,12 +57,12 @@ export function StockQuote({ quote }: StockQuoteProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
         <div className="flex items-center">
           <DollarSign className="w-4 h-4 text-gray-400 mr-2" />
           <div>
             <p className="text-xs text-gray-500 dark:text-gray-400">Market Cap</p>
-            <p className="font-medium text-gray-900 dark:text-white">{formatNumber(quote.marketCap, quote.currency)}</p>
+            <p className="font-medium text-gray-900 dark:text-white text-sm">{formatNumber(quote.marketCap, quote.currency)}</p>
           </div>
         </div>
 
@@ -70,18 +70,18 @@ export function StockQuote({ quote }: StockQuoteProps) {
           <BarChart3 className="w-4 h-4 text-gray-400 mr-2" />
           <div>
             <p className="text-xs text-gray-500 dark:text-gray-400">Volume</p>
-            <p className="font-medium text-gray-900 dark:text-white">{formatVolume(quote.volume)}</p>
+            <p className="font-medium text-gray-900 dark:text-white text-sm">{formatVolume(quote.volume)}</p>
           </div>
         </div>
 
         <div>
           <p className="text-xs text-gray-500 dark:text-gray-400">52W High</p>
-          <p className="font-medium text-gray-900 dark:text-white">{formatCurrency(quote.high52Week, quote.currency)}</p>
+          <p className="font-medium text-gray-900 dark:text-white text-sm">{formatCurrency(quote.high52Week, quote.currency)}</p>
         </div>
 
         <div>
           <p className="text-xs text-gray-500 dark:text-gray-400">52W Low</p>
-          <p className="font-medium text-gray-900 dark:text-white">{formatCurrency(quote.low52Week, quote.currency)}</p>
+          <p className="font-medium text-gray-900 dark:text-white text-sm">{formatCurrency(quote.low52Week, quote.currency)}</p>
         </div>
       </div>
     </div>

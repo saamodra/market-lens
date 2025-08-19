@@ -39,10 +39,10 @@ export function CacheStatus({
   const cacheSource = getCacheSource();
 
   return (
-    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <Database className={`w-5 h-5 ${isFromCache ? 'text-blue-600' : 'text-gray-400'}`} />
+        <div className="flex items-center space-x-2">
+          <Database className={`w-4 h-4 ${isFromCache ? 'text-blue-600' : 'text-gray-400'}`} />
 
           <div>
             <div className="flex items-center space-x-2">
@@ -68,10 +68,10 @@ export function CacheStatus({
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1">
           <button
             onClick={onRefresh}
-            className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-800/30 rounded-md transition-colors"
+            className="p-1.5 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-800/30 rounded-md transition-colors"
             title="Refresh data"
           >
             <RefreshCw className="w-4 h-4" />
@@ -79,7 +79,7 @@ export function CacheStatus({
 
           <button
             onClick={onClearCache}
-            className="p-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-800/30 rounded-md transition-colors"
+            className="p-1.5 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-800/30 rounded-md transition-colors"
             title="Clear cache"
           >
             <Trash2 className="w-4 h-4" />

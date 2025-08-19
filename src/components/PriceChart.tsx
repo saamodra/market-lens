@@ -71,8 +71,8 @@ export function PriceChart({ data, symbol, currency, movingAverage50, movingAver
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg border border-gray-200 dark:border-gray-700">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-3">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           {symbol} Price Chart
         </h3>
@@ -84,7 +84,7 @@ export function PriceChart({ data, symbol, currency, movingAverage50, movingAver
               <button
                 key={tf}
                 onClick={() => setTimeFrame(tf)}
-                className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                className={`px-2 py-1 text-xs rounded-md transition-colors ${
                   timeFrame === tf
                     ? 'bg-blue-500 text-white'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -101,13 +101,13 @@ export function PriceChart({ data, symbol, currency, movingAverage50, movingAver
               <button
                 key={ct}
                 onClick={() => setChartType(ct)}
-                className={`px-3 py-1 text-sm rounded-md transition-colors capitalize ${
+                className={`px-2 py-1 text-xs rounded-md transition-colors ${
                   chartType === ct
                     ? 'bg-blue-500 text-white'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
-                {ct}
+                {ct === 'line' ? 'Line' : 'Candle'}
               </button>
             ))}
           </div>

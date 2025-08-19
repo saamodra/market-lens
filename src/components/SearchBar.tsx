@@ -38,7 +38,7 @@ export function SearchBar({ onSearch, isLoading }: SearchBarProps) {
   return (
     <div className="relative w-full max-w-md">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
         <input
           ref={inputRef}
           type="text"
@@ -47,7 +47,7 @@ export function SearchBar({ onSearch, isLoading }: SearchBarProps) {
           onKeyDown={handleKeyDown}
           placeholder="Search stocks (e.g., AAPL, GOOGL)"
           disabled={isLoading}
-          className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg
+          className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
                    bg-white dark:bg-gray-800 text-gray-900 dark:text-white
                    focus:ring-2 focus:ring-blue-500 focus:border-transparent
                    disabled:opacity-50 disabled:cursor-not-allowed"
@@ -65,11 +65,11 @@ export function SearchBar({ onSearch, isLoading }: SearchBarProps) {
                 <button
                   key={symbol}
                   onClick={() => handleSearch(symbol)}
-                  className="w-full flex items-center px-3 py-2 text-left
+                  className="w-full flex items-center px-2 py-1.5 text-left
                            hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
                 >
-                  <Clock className="w-4 h-4 text-gray-400 mr-2" />
-                  <span className="text-gray-900 dark:text-white">{symbol}</span>
+                  <Clock className="w-3 h-3 text-gray-400 mr-2" />
+                  <span className="text-sm text-gray-900 dark:text-white">{symbol}</span>
                 </button>
               ))}
             </div>

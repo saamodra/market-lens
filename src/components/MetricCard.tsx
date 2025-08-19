@@ -8,9 +8,10 @@ interface MetricCardProps {
   trend?: 'up' | 'down' | 'neutral';
   status?: 'good' | 'warning' | 'danger';
   tooltip?: string;
+  compact?: boolean;
 }
 
-export function MetricCard({ title, value, subtitle, trend, status, tooltip }: MetricCardProps) {
+export function MetricCard({ title, value, subtitle, trend, status, tooltip, compact = false }: MetricCardProps) {
   const getStatusColor = () => {
     switch (status) {
       case 'good': return 'text-green-600 dark:text-green-400';
@@ -28,6 +29,37 @@ export function MetricCard({ title, value, subtitle, trend, status, tooltip }: M
     }
   };
 
+  if (compact) {
+    return (
+      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 border border-gray-200 dark:border-gray-600">
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="text-xs font-medium text-gray-600 dark:text-gray-400">{title}</h3>
+          {tooltip && (
+            <div className="group relative">
+              <AlertCircle className="w-3 h-3 text-gray-400 cursor-help" />
+              <div className="absolute bottom-full right-0 mb-2 w-40 p-2 bg-black text-white text-xs rounded
+                            opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                {tooltip}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div>
+            <p className={`text-sm font-bold ${getStatusColor()}`}>
+              {typeof value === 'number' ? value.toFixed(2) : value}
+            </p>
+            {subtitle && (
+              <p className="text-xs text-gray-500 dark:text-gray-400">{subtitle}</p>
+            )}
+          </div>
+          {getTrendIcon()}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg border border-gray-200 dark:border-gray-700">
       <div className="flex items-center justify-between mb-2">
@@ -35,14 +67,14 @@ export function MetricCard({ title, value, subtitle, trend, status, tooltip }: M
         {tooltip && (
           <div className="group relative">
             <AlertCircle className="w-4 h-4 text-gray-400 cursor-help" />
-            <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-black text-white text-xs rounded 
+            <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-black text-white text-xs rounded
                           opacity-0 group-hover:opacity-100 transition-opacity z-10">
               {tooltip}
             </div>
           </div>
         )}
       </div>
-      
+
       <div className="flex items-center justify-between">
         <div>
           <p className={`text-xl font-bold ${getStatusColor()}`}>

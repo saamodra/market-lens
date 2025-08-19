@@ -23,10 +23,9 @@ export function AIAnalysisCard({ analysis, isLoading }: AIAnalysisCardProps) {
 
   return (
     <div>
-
       {/* Raw AI Analysis */}
-      <div className="mb-6">
-        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+      <div className="mb-4">
+        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
           <h4 className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             <Lightbulb className="w-4 h-4 mr-2 text-yellow-500" />
             Analisis AI
@@ -45,7 +44,7 @@ export function AIAnalysisCard({ analysis, isLoading }: AIAnalysisCardProps) {
           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Rekomendasi Utama
           </h4>
-          <ul className="space-y-2">
+          <ul className="space-y-1">
             {analysis.recommendations.map((recommendation, index) => (
               <li key={index} className="text-sm text-gray-600 dark:text-gray-400 flex items-start">
                 <span className="text-blue-500 mr-2">•</span>

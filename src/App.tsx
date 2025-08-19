@@ -18,7 +18,6 @@ import { createCachedStockApi } from './services/cachedStockApi';
 function App() {
   const [analysis, setAnalysis] = useState<StockAnalysis | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
-  const [aiQuestion, setAiQuestion] = useState<string>("Berikan analisis lengkap saham ini dengan format keystats dan rekomendasi trading");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,7 +69,7 @@ function App() {
       // Get AI analysis using separate API call
       setIsLoadingAI(true);
       try {
-        const aiData = await cachedApi.getAIAnalysis(symbol, aiQuestion);
+        const aiData = await cachedApi.getAIAnalysis(symbol, "Berikan analisis lengkap saham ini dengan format keystats dan rekomendasi trading");
         setAiAnalysis(aiData);
       } catch (aiError) {
         console.error('AI analysis failed:', aiError);
@@ -91,7 +90,7 @@ function App() {
 
     setIsLoadingAI(true);
     try {
-      const aiData = await cachedApi.getAIAnalysis(analysis.quote.symbol, aiQuestion, true); // Force refresh
+      const aiData = await cachedApi.getAIAnalysis(analysis.quote.symbol, "Berikan analisis lengkap saham ini dengan format keystats dan rekomendasi trading", true); // Force refresh
       setAiAnalysis(aiData);
       setIsFromCache(false);
       setLastUpdated(new Date());
@@ -233,29 +232,6 @@ function App() {
                 )}
               </div>
 
-              <div className="mb-4">
-                <label htmlFor="ai-question" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Tanyakan AI tentang saham ini:
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    id="ai-question"
-                    value={aiQuestion}
-                    onChange={(e) => setAiQuestion(e.target.value)}
-                    placeholder="e.g., Berikan analisis lengkap saham ini dengan format keystats dan rekomendasi trading"
-                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <button
-                    onClick={handleRefreshAI}
-                    disabled={isLoadingAI || !analysis}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-md transition-colors"
-                  >
-                    Tanya AI
-                  </button>
-                </div>
-              </div>
-
               {(aiAnalysis || isLoadingAI) && (
                 <AIAnalysisCard
                   analysis={aiAnalysis!}
@@ -285,8 +261,8 @@ function App() {
               Welcome to Market Lens Pro
             </h3>
             <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-              Search for any stock symbol to get comprehensive analysis including
-              financial metrics, technical indicators, and AI-powered insights.
+              Search for any Indonesian stock symbol (e.g., BBCA, BBRI) to get comprehensive analysis including
+              financial metrics, technical indicators, and AI analysis. .JK will be added automatically.
             </p>
           </div>
         )}

@@ -107,6 +107,7 @@ class StockEvaluation(BaseModel):
 class AIAnalysisResponse(BaseModel):
     analysis: str
     recommendations: List[str]
+    prompt: str
 
 def analyze_stock(ticker: str) -> Dict[str, Any]:
     """
@@ -314,170 +315,6 @@ def analyze_stock(ticker: str) -> Dict[str, Any]:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error analyzing stock {ticker}: {str(e)}")
 
-def evaluate_stock(analysis: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Evaluate if a stock is good based on key metrics
-    Returns a score and recommendations
-    """
-    score = 0
-    max_score = 100
-    recommendations = []
-    red_flags = []
-
-    # === VALUATION SCORING (25 points) ===
-    pe_ratio = analysis.get('pe_ratio')
-    if pe_ratio:
-        if pe_ratio < 15:
-            score += 8
-            recommendations.append("✅ Good P/E ratio (undervalued)")
-        elif pe_ratio < 25:
-            score += 5
-            recommendations.append("⚠️ Moderate P/E ratio")
-        else:
-            score += 0
-            red_flags.append("🔴 High P/E ratio (potentially overvalued)")
-
-    peg_ratio = analysis.get('peg_ratio')
-    if peg_ratio:
-        if peg_ratio < 1:
-            score += 8
-            recommendations.append("✅ Excellent PEG ratio")
-        elif peg_ratio < 2:
-            score += 5
-        else:
-            red_flags.append("🔴 High PEG ratio")
-
-    pb_ratio = analysis.get('price_to_book')
-    if pb_ratio:
-        if pb_ratio < 3:
-            score += 5
-        elif pb_ratio > 5:
-            red_flags.append("🔴 High Price-to-Book ratio")
-
-    debt_equity = analysis.get('debt_to_equity')
-    if debt_equity:
-        if debt_equity < 0.3:
-            score += 4
-            recommendations.append("✅ Low debt levels")
-        elif debt_equity > 1:
-            red_flags.append("🔴 High debt-to-equity ratio")
-
-    # === PROFITABILITY SCORING (25 points) ===
-    profit_margin = analysis.get('profit_margin')
-    if profit_margin:
-        if profit_margin > 0.2:
-            score += 10
-            recommendations.append("✅ Excellent profit margins")
-        elif profit_margin > 0.1:
-            score += 7
-        elif profit_margin > 0.05:
-            score += 4
-        else:
-            red_flags.append("🔴 Low profit margins")
-
-    roe = analysis.get('return_on_equity')
-    if roe:
-        if roe > 0.15:
-            score += 8
-            recommendations.append("✅ Strong ROE")
-        elif roe > 0.1:
-            score += 5
-        elif roe < 0:
-            red_flags.append("🔴 Negative ROE")
-
-    operating_margin = analysis.get('operating_margin')
-    if operating_margin:
-        if operating_margin > 0.2:
-            score += 7
-        elif operating_margin < 0:
-            red_flags.append("🔴 Negative operating margin")
-
-    # === GROWTH SCORING (25 points) ===
-    revenue_growth = analysis.get('revenue_growth')
-    if revenue_growth:
-        if revenue_growth > 0.2:
-            score += 10
-            recommendations.append("✅ Strong revenue growth")
-        elif revenue_growth > 0.1:
-            score += 7
-        elif revenue_growth > 0.05:
-            score += 4
-        elif revenue_growth < 0:
-            red_flags.append("🔴 Declining revenue")
-
-    earnings_growth = analysis.get('earnings_growth')
-    if earnings_growth:
-        if earnings_growth > 0.2:
-            score += 10
-        elif earnings_growth > 0.1:
-            score += 7
-        elif earnings_growth < 0:
-            red_flags.append("🔴 Declining earnings")
-
-    price_change_1y = analysis.get('price_change_1y')
-    if price_change_1y:
-        if price_change_1y > 20:
-            score += 5
-        elif price_change_1y < -20:
-            red_flags.append("🔴 Poor 1-year performance")
-
-    # === FINANCIAL HEALTH SCORING (25 points) ===
-    current_ratio = analysis.get('current_ratio')
-    if current_ratio:
-        if current_ratio > 2:
-            score += 8
-            recommendations.append("✅ Strong liquidity")
-        elif current_ratio > 1:
-            score += 5
-        else:
-            red_flags.append("🔴 Poor liquidity")
-
-    cash_per_share = analysis.get('cash_per_share')
-    if cash_per_share and cash_per_share > 5:
-        score += 5
-        recommendations.append("✅ Strong cash position")
-
-    # Technical indicators
-    rsi = analysis.get('rsi')
-    if rsi:
-        if 30 <= rsi <= 70:
-            score += 5
-        elif rsi < 30:
-            recommendations.append("⚠️ Oversold (potential buying opportunity)")
-        elif rsi > 70:
-            recommendations.append("⚠️ Overbought (potential selling signal)")
-
-    ma_50 = analysis.get('ma_50')
-    ma_200 = analysis.get('ma_200')
-    current_price = analysis.get('current_price')
-    if ma_50 and ma_200 and current_price:
-        if current_price > ma_50 > ma_200:
-            score += 7
-            recommendations.append("✅ Strong uptrend (Golden Cross)")
-        elif current_price < ma_50 < ma_200:
-            red_flags.append("🔴 Strong downtrend (Death Cross)")
-
-    # Calculate final score as percentage
-    final_score = (score / max_score) * 100
-
-    # Overall recommendation
-    if final_score >= 75:
-        overall = "🟢 STRONG BUY"
-    elif final_score >= 60:
-        overall = "🟡 BUY"
-    elif final_score >= 40:
-        overall = "⚠️ HOLD"
-    elif final_score >= 25:
-        overall = "🔴 WEAK SELL"
-    else:
-        overall = "🔴 STRONG SELL"
-
-    return {
-        'score': final_score,
-        'recommendation': overall,
-        'positive_factors': recommendations,
-        'red_flags': red_flags
-    }
 
 def clean_data_for_json(data):
     """Recursively clean data to make it JSON compliant"""
@@ -621,36 +458,6 @@ async def analyze_stock_endpoint(request: StockAnalysisRequest):
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/api/stocks/evaluate", response_model=StockEvaluation)
-async def evaluate_stock_endpoint(request: StockAnalysisRequest):
-    """Evaluate a stock and return scoring and recommendations"""
-    try:
-        analysis = analyze_stock(request.symbol)
-        evaluation = evaluate_stock(analysis)
-        return StockEvaluation(
-            score=evaluation['score'],
-            recommendation=evaluation['recommendation'],
-            positiveFactors=evaluation['positive_factors'],
-            redFlags=evaluation['red_flags']
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/api/stocks/search")
-async def search_stocks(query: str):
-    """Search for stocks by symbol or company name"""
-    try:
-        # This is a simple search - in production you might want to use a more sophisticated search
-        # For now, we'll return some common stocks that match the query
-        common_stocks = [
-            'AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA', 'META', 'NVDA', 'NFLX', 'AMD', 'INTC',
-            'WIRG.JK', 'BBCA.JK', 'ASII.JK', 'TLKM.JK', 'UNVR.JK', 'BMRI.JK'
-        ]
-
-        results = [stock for stock in common_stocks if query.upper() in stock.upper()]
-        return {"results": results[:10]}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/ai/analyze", response_model=AIAnalysisResponse)
 async def ai_analysis_endpoint(request: AIAnalysisRequest):
@@ -661,33 +468,48 @@ async def ai_analysis_endpoint(request: AIAnalysisRequest):
 
         # Create context for AI
         context = f"""
-        Kamu adalah analis saham profesional.
-        Aku akan memberikan data saham dalam format JSON hasil dari yfinance.
+        Kamu adalah **analis saham profesional**.
+        Aku akan memberikan **data saham dalam format JSON hasil dari yfinance**.
 
-        Tugasmu adalah menyusun **ringkasan analisis saham** dengan struktur berikut:
+        Tugasmu adalah menyusun **ringkasan analisis saham** dengan format berikut:
+
         1. **Valuasi**
-        * Bandingkan metrik valuasi (PER, PBV, EV/EBITDA) dengan standar umum.
-        * Sebutkan apakah saham tergolong **murah, sedang, atau mahal**.
+        * Bandingkan metrik valuasi (PER, PBV, EV/EBITDA) dengan standar umum pasar.
+        * Berikan kesimpulan apakah saham tergolong **murah, sedang, atau mahal**.
+
         2. **Tren Kinerja Keuangan**
         * Uraikan pertumbuhan pendapatan, laba, margin usaha, dan margin bersih.
-        * Tulis dalam format angka ribuan (contoh: 1,234B, 125M).
+        * Gunakan format angka ribuan dengan satuan (contoh: 1,234B, 125M).
+
         3. **Posisi Neraca**
-        * Analisis likuiditas (Current Ratio, Quick Ratio, kas).
-        * Komentari rasio utang (Debt to Equity).
-        * Simpulkan apakah neraca **sehat atau tidak**.
+        * Analisis likuiditas (Current Ratio, Quick Ratio, posisi kas).
+        * Komentari tingkat utang (Debt to Equity).
+        * Simpulkan apakah neraca tergolong **sehat atau tidak**.
+
         4. **Arus Kas**
         * Tinjau arus kas operasi, investasi, dan pendanaan.
         * Sebutkan apakah arus kas secara umum **positif atau negatif**.
+
         5. **Momentum Perdagangan**
-        * Gunakan data teknikal (harga sekarang, range 52M, RSI, volume, volatilitas).
-        * Sebutkan potensi **gap up atau gap down** dalam jangka pendek.
+        * Gunakan data teknikal (harga saat ini, range 52 minggu, RSI, volume, volatilitas).
+        * Berikan pandangan singkat mengenai potensi pergerakan jangka pendek (**gap up atau gap down**).
+
         6. **Rekomendasi Trading**
-        * Akhiri dengan rekomendasi singkat untuk strategi **“beli sore – jual pagi”**.
-        * Gunakan bahasa Indonesia yang ringkas, profesional, dan mudah dipahami trader.
+        * Akhiri dengan rekomendasi ringkas untuk strategi **“beli sore – jual pagi”**.
+        * Sebutkan **harga beli ideal (support/entry point)** dan **harga jual target (resistance/exit point)**.
+        * Tampilkan dalam bentuk **tabel teknikal sederhana** dengan kolom:
+            * Support
+            * Resistance
+            * Target Entry
+            * Target Exit
+        * Gunakan bahasa Indonesia yang profesional, ringkas, dan mudah dipahami trader harian.
 
-        Gunakan gaya analisis yang ringkas, jelas, dengan bullet point bila perlu.
+        **Gaya penulisan:**
+        * Ringkas, jelas, menggunakan poin-poin bila perlu.
+        * Hindari penjelasan akademis yang terlalu panjang.
+        * Fokus pada insight praktis untuk trader (entry & exit level).
 
-        Berikut adalah data JSON-nya:
+        Berikut adalah data JSON yang akan dianalisis:
         {{
           "symbol": "{request.symbol}",
           "company_name": "{analysis.get('company_name', 'N/A')}",
@@ -793,37 +615,13 @@ async def ai_analysis_endpoint(request: AIAnalysisRequest):
 
         return AIAnalysisResponse(
             analysis=ai_text,
-            recommendations=recommendations
+            recommendations=recommendations,
+            prompt=context
         )
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/stocks/{symbol}/quote")
-async def get_stock_quote(symbol: str):
-    """Get basic stock quote information"""
-    try:
-        stock = yf.Ticker(symbol)
-        info = stock.info
-
-        quote = {
-            "symbol": symbol.upper(),
-            "name": info.get('longName', f'{symbol.upper()} Corporation'),
-            "price": info.get('currentPrice', 0),
-            "change": 0,  # Would need to calculate from historical data
-            "changePercent": 0,
-            "volume": info.get('volume', 0),
-            "marketCap": info.get('marketCap', 0),
-            "high52Week": info.get('fiftyTwoWeekHigh', 0),
-            "low52Week": info.get('fiftyTwoWeekLow', 0),
-            "sector": info.get('sector', 'N/A'),
-            "industry": info.get('industry', 'N/A'),
-            "currency": info.get('currency', 'USD')
-        }
-
-        return quote
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn

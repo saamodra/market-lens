@@ -1,35 +1,24 @@
-import { StockQuote, FinancialMetrics, TechnicalIndicators, PriceData } from '../types/stock';
-
 const API_BASE_URL = 'http://localhost:8000/api';
 
-export const searchStocks = async (query: string): Promise<string[]> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/stocks/search?query=${encodeURIComponent(query)}`);
-    if (!response.ok) {
-      throw new Error('Failed to search stocks');
-    }
-    const data = await response.json();
-    return data.results || [];
-  } catch (error) {
-    console.error('Error searching stocks:', error);
-    // Fallback to mock results if API fails
-    const mockResults = [
-      'AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA', 'META', 'NVDA', 'NFLX', 'AMD', 'INTC'
-    ];
-    return mockResults.filter(symbol =>
-      symbol.toLowerCase().includes(query.toLowerCase())
-    ).slice(0, 5);
+// Helper function to add .JK postfix to stock symbols
+const addJKPostfix = (symbol: string): string => {
+  // If symbol already ends with .JK, return as is
+  if (symbol.endsWith('.JK')) {
+    return symbol;
   }
+  // Add .JK postfix
+  return `${symbol}.JK`;
 };
 
 export const getStockData = async (symbol: string) => {
   try {
+    const symbolWithJK = addJKPostfix(symbol);
     const response = await fetch(`${API_BASE_URL}/stocks/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ symbol }),
+      body: JSON.stringify({ symbol: symbolWithJK }),
     });
 
     if (!response.ok) {
@@ -51,12 +40,13 @@ export const getMultipleStocks = async (symbols: string[]) => {
 
 export const getStockEvaluation = async (symbol: string) => {
   try {
+    const symbolWithJK = addJKPostfix(symbol);
     const response = await fetch(`${API_BASE_URL}/stocks/evaluate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ symbol }),
+      body: JSON.stringify({ symbol: symbolWithJK }),
     });
 
     if (!response.ok) {
@@ -72,12 +62,13 @@ export const getStockEvaluation = async (symbol: string) => {
 
 export const getAIAnalysis = async (symbol: string, question: string) => {
   try {
+    const symbolWithJK = addJKPostfix(symbol);
     const response = await fetch(`${API_BASE_URL}/ai/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ symbol, question }),
+      body: JSON.stringify({ symbol: symbolWithJK, question }),
     });
 
     if (!response.ok) {

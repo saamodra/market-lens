@@ -47,24 +47,29 @@ export function RecentSearches({ onSelectStock }: RecentSearchesProps) {
       return newData;
     });
 
-    // Clear from stock cache
+    // Clear from stock cache (both original symbol and .JK version)
     try {
       const stockCache = localStorage.getItem('stockCache');
       if (stockCache) {
         const parsed = JSON.parse(stockCache);
+        // Remove both the original symbol and the .JK version
         delete parsed[symbol];
+        delete parsed[`${symbol}.JK`];
         localStorage.setItem('stockCache', JSON.stringify(parsed));
       }
     } catch (error) {
       console.error('Error clearing stock cache for symbol:', symbol, error);
     }
 
-    // Clear from AI cache (all entries for this symbol)
+    // Clear from AI cache (both original symbol and .JK version)
     try {
       const aiCache = localStorage.getItem('aiCache');
       if (aiCache) {
         const parsed = JSON.parse(aiCache);
-        const keysToRemove = Object.keys(parsed).filter(key => key.startsWith(`${symbol}:`));
+        // Remove entries for both the original symbol and the .JK version
+        const keysToRemove = Object.keys(parsed).filter(key =>
+          key.startsWith(`${symbol}:`) || key.startsWith(`${symbol}.JK:`)
+        );
         keysToRemove.forEach(key => delete parsed[key]);
         localStorage.setItem('aiCache', JSON.stringify(parsed));
       }

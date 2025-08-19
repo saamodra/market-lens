@@ -66,6 +66,11 @@ stock-analyzer/
    ```bash
    python run.py
    ```
+   or
+
+   ```
+   npm run backend
+   ```
 
    The API will be available at `http://localhost:8000`
 
@@ -85,13 +90,8 @@ stock-analyzer/
 
 ## API Endpoints
 
-### Stock Analysis
+### Analysis
 - `POST /api/stocks/analyze` - Get comprehensive stock analysis
-- `POST /api/stocks/evaluate` - Get stock evaluation and scoring
-- `GET /api/stocks/search?query={query}` - Search for stocks
-- `GET /api/stocks/{symbol}/quote` - Get basic stock quote
-
-### AI Analysis
 - `POST /api/ai/analyze` - Get AI-powered stock analysis
 
 ### Health Check

@@ -45,7 +45,7 @@ export function SearchBar({ onSearch, isLoading }: SearchBarProps) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Search stocks (e.g., AAPL, GOOGL)"
+          placeholder="Search stocks (e.g., BBCA, BBRI, TLKM)"
           disabled={isLoading}
           className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
                    bg-white dark:bg-gray-800 text-gray-900 dark:text-white

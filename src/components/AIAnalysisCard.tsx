@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Lightbulb, Copy, Check } from 'lucide-react';
+import React from 'react';
+import { Lightbulb } from 'lucide-react';
 import { AIAnalysis } from '../types/stock';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -11,20 +11,6 @@ interface AIAnalysisCardProps {
 }
 
 export function AIAnalysisCard({ analysis, isLoading }: AIAnalysisCardProps) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopyPrompt = async () => {
-    if (!analysis.prompt) return;
-
-    try {
-      await navigator.clipboard.writeText(analysis.prompt);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy prompt:', err);
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -37,38 +23,6 @@ export function AIAnalysisCard({ analysis, isLoading }: AIAnalysisCardProps) {
 
   return (
     <div>
-      {/* AI Prompt */}
-      {analysis.prompt && (
-        <div className="mb-4">
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-            <div className="flex items-center justify-between">
-              <h4 className="flex items-center text-sm font-medium text-blue-700 dark:text-blue-300">
-                <Lightbulb className="w-4 h-4 mr-2 text-blue-500" />
-                AI Prompt Used
-              </h4>
-              <button
-                onClick={handleCopyPrompt}
-                disabled={!analysis.prompt}
-                className="flex items-center px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-800/30 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Copy prompt to clipboard"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-3 h-3 mr-1" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3 h-3 mr-1" />
-                    Copy
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Raw AI Analysis */}
       <div className="mb-4">
         <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">

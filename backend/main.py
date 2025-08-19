@@ -97,6 +97,7 @@ class StockAnalysis(BaseModel):
     metrics: FinancialMetrics
     technical: TechnicalIndicators
     priceHistory: List[PriceData]
+    prompt: str
 
 class StockEvaluation(BaseModel):
     score: float
@@ -107,7 +108,6 @@ class StockEvaluation(BaseModel):
 class AIAnalysisResponse(BaseModel):
     analysis: str
     recommendations: List[str]
-    prompt: str
 
 def analyze_stock(ticker: str) -> Dict[str, Any]:
     """
@@ -435,7 +435,105 @@ def format_stock_data(analysis: Dict[str, Any], ticker: str) -> Dict[str, Any]:
         "quote": quote,
         "metrics": metrics,
         "technical": technical,
-        "priceHistory": price_history
+        "priceHistory": price_history,
+        "prompt": f"""
+        Kamu adalah **analis saham profesional**.
+        Aku akan memberikan **data saham dalam format JSON hasil dari yfinance**.
+
+        Tugasmu adalah menyusun **ringkasan analisis saham** dengan format berikut:
+
+        1. **Valuasi**
+        * Bandingkan metrik valuasi (PER, PBV, EV/EBITDA) dengan standar umum pasar.
+        * Berikan kesimpulan apakah saham tergolong **murah, sedang, atau mahal**.
+
+        2. **Tren Kinerja Keuangan**
+        * Uraikan pertumbuhan pendapatan, laba, margin usaha, dan margin bersih.
+        * Gunakan format angka ribuan dengan satuan (contoh: 1,234B, 125M).
+
+        3. **Posisi Neraca**
+        * Analisis likuiditas (Current Ratio, Quick Ratio, posisi kas).
+        * Komentari tingkat utang (Debt to Equity).
+        * Simpulkan apakah neraca tergolong **sehat atau tidak**.
+
+        4. **Arus Kas**
+        * Tinjau arus kas operasi, investasi, dan pendanaan.
+        * Sebutkan apakah arus kas secara umum **positif atau negatif**.
+
+        5. **Momentum Perdagangan**
+        * Gunakan data teknikal (harga saat ini, range 52 minggu, RSI, volume, volatilitas).
+        * Berikan pandangan singkat mengenai potensi pergerakan jangka pendek (**gap up atau gap down**).
+
+        6. **Rekomendasi Trading**
+        * Akhiri dengan rekomendasi ringkas untuk strategi **"beli sore – jual pagi"**.
+        * Sebutkan **harga beli ideal (support/entry point)** dan **harga jual target (resistance/exit point)**.
+        * Tampilkan dalam bentuk **tabel teknikal sederhana** dengan kolom:
+            * Support
+            * Resistance
+            * Target Entry
+            * Target Exit
+        * Gunakan bahasa Indonesia yang profesional, ringkas, dan mudah dipahami trader harian.
+
+        **Gaya penulisan:**
+        * Ringkas, jelas, menggunakan poin-poin bila perlu.
+        * Hindari penjelasan akademis yang terlalu panjang.
+        * Fokus pada insight praktis untuk trader (entry & exit level).
+
+        Berikut adalah data JSON yang akan dianalisis:
+        {{
+          "symbol": "{ticker}",
+          "company_name": "{analysis.get('company_name', 'N/A')}",
+          "current_price": {analysis.get('current_price', 0)},
+          "market_cap": {analysis.get('market_cap', 0)},
+
+          "valuation": {{
+            "pe_ratio": {analysis.get('pe_ratio', 'N/A')},
+            "forward_pe": {analysis.get('forward_pe', 'N/A')},
+            "price_to_book": {analysis.get('price_to_book', 'N/A')},
+            "price_to_sales": {analysis.get('price_to_sales', 'N/A')},
+            "price_to_cashflow": {analysis.get('price_to_cashflow', 'N/A')},
+            "ev_to_ebitda": {analysis.get('ev_to_ebitda', 'N/A')},
+            "enterprise_value": {analysis.get('enterprise_value', 'N/A')}
+          }},
+
+          "per_share": {{
+            "eps_ttm": {analysis.get('eps_ttm', 'N/A')},
+            "eps_forward": {analysis.get('eps_forward', 'N/A')},
+            "eps_annualized": {analysis.get('eps_annualized', 'N/A')},
+            "revenue_per_share": {analysis.get('revenue_per_share', 'N/A')},
+            "cash_per_share": {analysis.get('cash_per_share', 'N/A')},
+            "book_value_per_share": {analysis.get('book_value_per_share', 'N/A')},
+            "free_cash_flow_per_share": {analysis.get('free_cash_flow_per_share', 'N/A')}
+          }},
+
+          "solvency": {{
+            "current_ratio": {analysis.get('current_ratio', 'N/A')},
+            "quick_ratio": {analysis.get('quick_ratio', 'N/A')},
+            "debt_to_equity": {analysis.get('debt_to_equity', 'N/A')}
+          }},
+
+          "profitability": {{
+            "profit_margin": {analysis.get('profit_margin', 'N/A')},
+            "operating_margin": {analysis.get('operating_margin', 'N/A')},
+            "return_on_equity": {analysis.get('return_on_equity', 'N/A')},
+            "return_on_assets": {analysis.get('return_on_assets', 'N/A')}
+          }},
+
+          "growth": {{
+            "revenue_growth": {analysis.get('revenue_growth', 'N/A')},
+            "earnings_growth": {analysis.get('earnings_growth', 'N/A')}
+          }},
+
+          "technical": {{
+            "52_week_high": {analysis.get('52_week_high', 0)},
+            "52_week_low": {analysis.get('52_week_low', 0)},
+            "avg_volume": {analysis.get('avg_volume', 0)},
+            "volatility": {analysis.get('volatility', 'N/A')},
+            "ma_50": {analysis.get('ma_50', 'N/A')},
+            "ma_200": {analysis.get('ma_200', 'N/A')},
+            "rsi": {analysis.get('rsi', 'N/A')}
+          }}
+        }}
+        """
     }
 
 @app.get("/")
@@ -615,8 +713,7 @@ async def ai_analysis_endpoint(request: AIAnalysisRequest):
 
         return AIAnalysisResponse(
             analysis=ai_text,
-            recommendations=recommendations,
-            prompt=context
+            recommendations=recommendations
         )
 
     except Exception as e:

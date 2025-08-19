@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
-import { BarChart3, AlertTriangle } from 'lucide-react';
+import { BarChart3, AlertTriangle, Lightbulb, Copy } from 'lucide-react';
 import { SearchBar } from './components/SearchBar';
 import { StockQuote } from './components/StockQuote';
 import { FinancialMetrics } from './components/FinancialMetrics';
@@ -230,6 +230,29 @@ function App() {
                     {isLoadingAI ? 'Refreshing...' : 'Refresh AI'}
                   </button>
                 )}
+              </div>
+
+              {/* AI Prompt Section */}
+              <div className="mb-4">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="flex items-center text-sm font-medium text-blue-700 dark:text-blue-300">
+                      <Lightbulb className="w-4 h-4 mr-2 text-blue-500" />
+                      AI Prompt Used
+                    </h4>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(analysis.prompt);
+                        toast.success('Prompt copied to clipboard!');
+                      }}
+                      className="flex items-center px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-800/30 rounded-md transition-colors"
+                      title="Copy prompt to clipboard"
+                    >
+                      <Copy className="w-3 h-3 mr-1" />
+                      Copy
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {(aiAnalysis || isLoadingAI) && (

@@ -48,7 +48,6 @@ export interface TechnicalIndicators {
 export interface AIAnalysis {
   analysis: string;
   recommendations: string[];
-  prompt: string;
 }
 
 export interface PriceData {
@@ -65,4 +64,5 @@ export interface StockAnalysis {
   metrics: FinancialMetrics;
   technical: TechnicalIndicators;
   priceHistory: PriceData[];
+  prompt: string;
 }

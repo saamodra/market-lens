@@ -12,7 +12,7 @@ interface StockCache {
 }
 
 interface AIAnalysisCache {
-  [key: string]: CacheEntry<AIAnalysis>; // key = symbol:question
+  [key: string]: CacheEntry<AIAnalysis>; // key = prompt:question
 }
 
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutes in milliseconds
@@ -77,8 +77,8 @@ export function useStockCache() {
     return null;
   }, [isExpired]);
 
-  const getCachedAIAnalysis = useCallback((symbol: string, question: string): AIAnalysis | null => {
-    const key = `${symbol}:${question}`;
+  const getCachedAIAnalysis = useCallback((prompt: string, question?: string): AIAnalysis | null => {
+    const key = `${prompt}:${question || ''}`;
     const entry = cacheRef.current.aiCache[key];
     if (entry && !isExpired(entry)) {
       return entry.data;
@@ -103,8 +103,8 @@ export function useStockCache() {
     saveToLocalStorage(STOCK_CACHE_KEY, newCache);
   }, [saveToLocalStorage]);
 
-  const setCachedAIAnalysis = useCallback((symbol: string, question: string, data: AIAnalysis) => {
-    const key = `${symbol}:${question}`;
+  const setCachedAIAnalysis = useCallback((prompt: string, question: string, data: AIAnalysis) => {
+    const key = `${prompt}:${question}`;
     const entry: CacheEntry<AIAnalysis> = {
       data,
       timestamp: Date.now(),

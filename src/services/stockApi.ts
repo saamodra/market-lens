@@ -60,15 +60,14 @@ export const getStockEvaluation = async (symbol: string) => {
   }
 };
 
-export const getAIAnalysis = async (symbol: string, question: string) => {
+export const getAIAnalysis = async (prompt: string, question?: string) => {
   try {
-    const symbolWithJK = addJKPostfix(symbol);
     const response = await fetch(`${API_BASE_URL}/ai/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ symbol: symbolWithJK, question }),
+      body: JSON.stringify({ prompt, question }),
     });
 
     if (!response.ok) {

@@ -46,9 +46,12 @@ function App() {
     setLastUpdated(null);
 
     try {
+      let stockAnalysisData: StockAnalysis;
+
       // Check if we have cached data first
       const cachedData = cacheHook.getCachedStockData(symbol);
       if (cachedData) {
+        stockAnalysisData = cachedData;
         setAnalysis(cachedData);
         setIsFromCache(true);
         setLastUpdated(new Date());
@@ -57,23 +60,25 @@ function App() {
         storeStockDataForRecentSearches(symbol, cachedData);
       } else {
         // Fetch fresh data
-        const data = await cachedApi.getStockData(symbol);
-        setAnalysis(data);
+        stockAnalysisData = await cachedApi.getStockData(symbol);
+        setAnalysis(stockAnalysisData);
         setIsFromCache(false);
         setLastUpdated(new Date());
         toast.success(`Fresh analysis loaded for ${symbol}`);
         // Store data for recent searches
-        storeStockDataForRecentSearches(symbol, data);
+        storeStockDataForRecentSearches(symbol, stockAnalysisData);
       }
 
-      // Get AI analysis using separate API call
-      setIsLoadingAI(true);
-      try {
-        const aiData = await cachedApi.getAIAnalysis(symbol, "Berikan analisis lengkap saham ini dengan format keystats dan rekomendasi trading");
-        setAiAnalysis(aiData);
-      } catch (aiError) {
-        console.error('AI analysis failed:', aiError);
-        // Don't fail the entire search if AI analysis fails
+      // Get AI analysis using prompt from stock analysis
+      if (stockAnalysisData?.prompt) {
+        setIsLoadingAI(true);
+        try {
+          const aiData = await cachedApi.getAIAnalysis(stockAnalysisData.prompt, "Berikan analisis lengkap saham ini dengan format keystats dan rekomendasi trading");
+          setAiAnalysis(aiData);
+        } catch (aiError) {
+          console.error('AI analysis failed:', aiError);
+          // Don't fail the entire search if AI analysis fails
+        }
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch stock data';
@@ -86,11 +91,11 @@ function App() {
   };
 
   const handleRefreshAI = async () => {
-    if (!analysis?.quote.symbol) return;
+    if (!analysis?.prompt) return;
 
     setIsLoadingAI(true);
     try {
-      const aiData = await cachedApi.getAIAnalysis(analysis.quote.symbol, "Berikan analisis lengkap saham ini dengan format keystats dan rekomendasi trading", true); // Force refresh
+      const aiData = await cachedApi.getAIAnalysis(analysis.prompt, "Berikan analisis lengkap saham ini dengan format keystats dan rekomendasi trading", true); // Force refresh
       setAiAnalysis(aiData);
       setIsFromCache(false);
       setLastUpdated(new Date());

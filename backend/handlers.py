@@ -74,12 +74,12 @@ class AIAnalysisHandler:
         """
         self.container = container
 
-    async def analyze_stock_with_ai(self, request: AIAnalysisRequest) -> AIAnalysisResponse:
+    async def analyze_with_ai(self, request: AIAnalysisRequest) -> AIAnalysisResponse:
         """
-        Get AI-powered analysis of a stock.
+        Get AI-powered analysis using provided prompt.
 
         Args:
-            request: AI analysis request
+            request: AI analysis request containing prompt and optional question
 
         Returns:
             AIAnalysisResponse: AI analysis result
@@ -89,11 +89,11 @@ class AIAnalysisHandler:
         """
         try:
             ai_service = self.container.ai_service
-            result = ai_service.analyze_stock_with_ai(request.symbol, request.question)
+            result = ai_service.analyze_with_prompt(request.prompt, request.question)
             return result
         except Exception as e:
-            print(f"Error in AI analysis for {request.symbol}: {e}")
+            print(f"Error in AI analysis: {e}")
             raise HTTPException(
                 status_code=500,
-                detail=f"Failed to get AI analysis for {request.symbol}: {str(e)}"
+                detail=f"Failed to get AI analysis: {str(e)}"
             )

@@ -3,16 +3,16 @@ import { StockAnalysis, AIAnalysis } from '../types/stock';
 
 export interface CachedStockApi {
   getStockData: (symbol: string, forceRefresh?: boolean) => Promise<StockAnalysis>;
-  getAIAnalysis: (symbol: string, question: string, forceRefresh?: boolean) => Promise<AIAnalysis>;
+  getAIAnalysis: (prompt: string, question?: string, forceRefresh?: boolean) => Promise<AIAnalysis>;
   clearCache: () => void;
   getCacheStats: () => { stockEntries: number; aiEntries: number; totalEntries: number };
 }
 
 export function createCachedStockApi(
   getCachedStockData: (symbol: string) => StockAnalysis | null,
-  getCachedAIAnalysis: (symbol: string, question: string) => AIAnalysis | null,
+  getCachedAIAnalysis: (prompt: string, question?: string) => AIAnalysis | null,
   setCachedStockData: (symbol: string, data: StockAnalysis) => void,
-  setCachedAIAnalysis: (symbol: string, question: string, data: AIAnalysis) => void,
+  setCachedAIAnalysis: (prompt: string, question: string, data: AIAnalysis) => void,
   clearCache: () => void,
   getCacheStats: () => { stockEntries: number; aiEntries: number; totalEntries: number }
 ): CachedStockApi {
@@ -37,22 +37,22 @@ export function createCachedStockApi(
     return data;
   };
 
-  const cachedGetAIAnalysis = async (symbol: string, question: string, forceRefresh = false): Promise<AIAnalysis> => {
+  const cachedGetAIAnalysis = async (prompt: string, question?: string, forceRefresh = false): Promise<AIAnalysis> => {
     // Check cache first (unless force refresh is requested)
     if (!forceRefresh) {
-      const cached = getCachedAIAnalysis(symbol, question);
+      const cached = getCachedAIAnalysis(prompt, question);
       if (cached) {
-        console.log(`[Cache] Using cached AI analysis for ${symbol}:${question.substring(0, 30)}...`);
+        console.log(`[Cache] Using cached AI analysis for prompt:${prompt.substring(0, 30)}...`);
         return cached;
       }
     }
 
     // Fetch from API if not in cache or force refresh
-    console.log(`[Cache] Fetching fresh AI analysis for ${symbol}`);
-    const data = await getAIAnalysis(symbol, question);
+    console.log(`[Cache] Fetching fresh AI analysis for prompt`);
+    const data = await getAIAnalysis(prompt, question);
 
     // Store in cache
-    setCachedAIAnalysis(symbol, question, data);
+    setCachedAIAnalysis(prompt, question || '', data);
 
     return data;
   };

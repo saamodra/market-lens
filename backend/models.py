@@ -12,8 +12,8 @@ class StockAnalysisRequest(BaseModel):
 
 
 class AIAnalysisRequest(BaseModel):
-    symbol: str
-    question: str
+    prompt: str
+    question: Optional[str] = None
 
 
 # Response Models

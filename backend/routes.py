@@ -49,5 +49,5 @@ def setup_routes(app: FastAPI, container: DependencyContainer) -> None:
     # AI analysis endpoint
     @app.post("/api/ai/analyze", response_model=AIAnalysisResponse)
     async def ai_analysis_endpoint(request: AIAnalysisRequest):
-        """Get AI-powered analysis of a stock."""
-        return await ai_handler.analyze_stock_with_ai(request)
+        """Get AI-powered analysis using provided prompt."""
+        return await ai_handler.analyze_with_ai(request)

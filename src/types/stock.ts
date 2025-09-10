@@ -66,3 +66,26 @@ export interface StockAnalysis {
   priceHistory: PriceData[];
   prompt: string;
 }
+
+// Stockbit Screener Types - Updated to match actual API response
+export interface StockbitScreenerDisplayData {
+  stocks: ProcessedStockData[];
+  screenName: string;
+  totalRows: number;
+  currentPage: number;
+  perPage: number;
+  columns: StockbitColumn[];
+  lastUpdated: string;
+}
+
+// Re-export the types from stockbitApi for convenience
+export type {
+  StockbitCompany,
+  StockbitResult,
+  StockbitCalc,
+  StockbitColumn,
+  StockbitRule,
+  StockbitScreenerData,
+  StockbitScreenerResponse,
+  ProcessedStockData
+} from '../services/stockbitApi';

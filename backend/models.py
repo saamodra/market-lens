@@ -91,3 +91,25 @@ class StockEvaluation(BaseModel):
 class AIAnalysisResponse(BaseModel):
     analysis: str
     recommendations: List[str]
+
+
+# Stockbit Models
+class StockbitLoginRequest(BaseModel):
+    username: str
+    password: str
+    verificationToken: str
+    recaptchaVersion: str
+
+
+class StockbitAuthResponse(BaseModel):
+    message: str
+    data: dict
+
+
+class StockbitScreenerRequest(BaseModel):
+    templateId: Optional[str] = "4848138"
+
+
+class StockbitScreenerResponse(BaseModel):
+    data: dict
+    message: str

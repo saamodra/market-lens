@@ -2,17 +2,23 @@
 Route definitions for the stock analyzer API.
 Following Single Responsibility Principle - this file only handles route setup.
 """
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header
 from datetime import datetime
+from typing import Optional
 
 from models import (
     StockAnalysisRequest,
     AIAnalysisRequest,
     StockAnalysis,
-    AIAnalysisResponse
+    AIAnalysisResponse,
+    StockbitLoginRequest,
+    StockbitAuthResponse,
+    StockbitScreenerRequest,
+    StockbitScreenerResponse
 )
 from dependencies import DependencyContainer
 from handlers import StockAnalysisHandler, AIAnalysisHandler, HealthHandler
+from stockbit_handlers import StockbitAuthHandler, StockbitScreenerHandler
 
 
 def setup_routes(app: FastAPI, container: DependencyContainer) -> None:
@@ -27,6 +33,8 @@ def setup_routes(app: FastAPI, container: DependencyContainer) -> None:
     health_handler = HealthHandler()
     stock_handler = StockAnalysisHandler(container)
     ai_handler = AIAnalysisHandler(container)
+    stockbit_auth_handler = StockbitAuthHandler()
+    stockbit_screener_handler = StockbitScreenerHandler()
 
     # Root endpoint
     @app.get("/")
@@ -51,3 +59,22 @@ def setup_routes(app: FastAPI, container: DependencyContainer) -> None:
     async def ai_analysis_endpoint(request: AIAnalysisRequest):
         """Get AI-powered analysis using provided prompt."""
         return await ai_handler.analyze_with_ai(request)
+
+    # Stockbit authentication endpoint
+    @app.post("/api/stockbit/auth", response_model=StockbitAuthResponse)
+    async def stockbit_auth_endpoint(request: StockbitLoginRequest):
+        """Authenticate with Stockbit API (proxy to bypass CORS)."""
+        return await stockbit_auth_handler.authenticate(request)
+
+    # Stockbit screener endpoint
+    @app.post("/api/stockbit/screener", response_model=StockbitScreenerResponse)
+    async def stockbit_screener_endpoint(
+        request: StockbitScreenerRequest,
+        authorization: Optional[str] = Header(None)
+    ):
+        """Get screener results from Stockbit API (proxy to bypass CORS)."""
+        if not authorization or not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Bearer token required")
+
+        access_token = authorization.replace("Bearer ", "")
+        return await stockbit_screener_handler.get_screener_results(request, access_token)

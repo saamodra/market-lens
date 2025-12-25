@@ -43,7 +43,7 @@ pip install -r requirements.txt
 # Check if .env file exists
 if [ ! -f ".env" ]; then
     echo "⚠️  .env file not found. Creating from template..."
-    cp env.example .env
+    cp .env.example .env
     echo "📝 Please edit .env file and add your Google AI API key"
     echo "🔑 Get your API key from: https://makersuite.google.com/app/apikey"
 fi
